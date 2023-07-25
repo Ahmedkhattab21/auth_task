@@ -1,4 +1,5 @@
 import 'package:authentication_task/Screens/Register/register.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../components/buttons.dart';
@@ -161,8 +162,8 @@ class _LoginBodyState extends State<LoginBody> {
                       if (emptyArea == false) {
                         try{
 
-                          await loginWithEmailAndPassword(emailText.text,passwordText.text,);
-                          Navigator.pushNamed(context, HomePage.routeName);
+                          loginWithEmailAndPassword(emailText.text,passwordText.text,);
+
 
                         }catch(e){
                           await displaySnackBar(context,"email or password are wrong.");
@@ -200,17 +201,37 @@ class _LoginBodyState extends State<LoginBody> {
 
   // TODO: Create Your Functions Here
 
-  Future<UserCredential> loginWithEmailAndPassword(
+  void loginWithEmailAndPassword(
       String email, String password) async {
-
     try {
-      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      bool isFound =false;
+    FirebaseAuth.instance.signInWithEmailAndPassword(
           email: email,
           password: password
-      );
-      return credential;
+      ).then((value) async{
+     FirebaseFirestore.instance
+         .collection('users')
+         .get()
+         .then((QuerySnapshot querySnapshot) {
+       querySnapshot.docs.forEach((doc) {
+         if(doc["userEmail"] == email.trim() && doc["userPassword"] == password.trim()){
+           isFound=true;
+           Navigator.pushNamed(context, HomePage.routeName);
+           return ;
+         }
+       });
+       if(isFound !=true){
+          displaySnackBar(context,"login with email and password failed.");
+       }
+     }
+     );
+      }).catchError((error)async {
+      await displaySnackBar(context,"login with email and password failed.");
+
+    });
     } catch (e) {
-      debugPrint('Registration with email and password failed: ${e}');
+      await displaySnackBar(context,"login with email and password failed.");
+      debugPrint('login with email and password failed: ${e}');
       rethrow;
     }
   }

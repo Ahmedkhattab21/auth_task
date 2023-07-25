@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../components/buttons.dart';
@@ -16,20 +17,36 @@ class RegisterBody extends StatefulWidget {
 class _RegisterBodyState extends State<RegisterBody> {
   final _formKey = GlobalKey<FormState>();
 
+  void createUser(
+      String name,
+      String email,
+      String password,
+      String uId
+      ){
 
-  Future<UserCredential> registerWithEmailAndPassword(
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(uId)
+        .set({
+      'userName' : name,
+      'userEmail' : email,
+      'userPassword' : password
+    }).then((value) {
+      print('the process is done successfuly');
+    }).catchError((error){
+      print(error.toString());
+    });
+  }
+
+  void registerWithEmailAndPassword(
       String email, String password, String name) async {
-
     try {
-      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: password,
-      );
-      User? user = userCredential.user;
-      if (user != null) {
-        await user.updateDisplayName(name);
-      }
-      return userCredential;
+      ).then((value) {
+          createUser(name, email, password, value.user!.uid);
+      });
     } catch (e) {
       debugPrint('Registration with email and password failed: ${e}');
       rethrow;
@@ -227,9 +244,9 @@ class _RegisterBodyState extends State<RegisterBody> {
                           }
                           if (emptyArea == false) {
                             try{
-
-                              await registerWithEmailAndPassword(emailText.text,passwordText.text,nameText.text);
+                              registerWithEmailAndPassword(emailText.text,passwordText.text,nameText.text);
                               Navigator.pushNamed(context, HomePage.routeName);
+
 
                             }catch(e){
                                await displaySnackBar(context,"The email address is already in use by another account.");
