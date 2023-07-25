@@ -247,7 +247,6 @@ class _RegisterBodyState extends State<RegisterBody> {
                               registerWithEmailAndPassword(emailText.text,passwordText.text,nameText.text);
                               Navigator.pushNamed(context, HomePage.routeName);
 
-
                             }catch(e){
                                await displaySnackBar(context,"The email address is already in use by another account.");
                             }

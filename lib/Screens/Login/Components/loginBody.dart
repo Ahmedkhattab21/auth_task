@@ -161,10 +161,7 @@ class _LoginBodyState extends State<LoginBody> {
                       }
                       if (emptyArea == false) {
                         try{
-
                           loginWithEmailAndPassword(emailText.text,passwordText.text,);
-
-
                         }catch(e){
                           await displaySnackBar(context,"email or password are wrong.");
                         }
